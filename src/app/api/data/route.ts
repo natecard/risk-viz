@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-interface GeoJSON {
+export interface GeoJSON {
   type: string;
   features: Feature[];
 }
 
-interface Feature {
+export interface Feature {
   type: string;
   geometry: {
     type: string;
@@ -75,5 +75,5 @@ function convertToGeoJSON(data: any) {
   return geoJSON;
 }
 const data = convertToGeoJSON(jsonData)
-return NextResponse.json({ data })
+return NextResponse.json(data)
 }
