@@ -1,4 +1,3 @@
-import Head from 'next/head'
 import './globals.css'
 
 export const metadata = {
@@ -13,9 +12,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <Head>
-        <script async src="https://apis.google.com/js/api.js"></script>
-      </Head>
       <body>{children}</body>
     </html>
   );
