@@ -47,7 +47,7 @@ export default async function DataMap() {
           style={{ width: '100vw', height: '60vh' }}
           mapboxAccessToken={apiKey}
         >
-          <Source type='geojson' data={'http://localhost:3000/api/data'}>
+          <Source type='geojson' data={'/api/data'}>
             <Layer {...layerData} />
           </Source>
         </Map>
