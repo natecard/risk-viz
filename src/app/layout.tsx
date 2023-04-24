@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import './globals.css'
 
 export const metadata = {
@@ -12,7 +13,31 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <header className='flex flex-row pt-4 pb-2 bg-blue-400'>
+          <div className='px-8'>
+            <Link href="/">
+              <h1>Home</h1>
+            </Link>
+          </div>
+          <div className="px-8">
+            <Link href="/map">
+              <button>Data Map</button>
+            </Link>
+          </div>
+          <div className="px-8">
+            <Link href="/table">
+              <button>Data Table</button>
+            </Link>
+          </div>
+          <div className="px-8">
+            <Link href="/chart">
+              <button>Data Chart</button>
+            </Link>
+          </div>
+        </header>
+        {children}
+      </body>
     </html>
   );
 }
