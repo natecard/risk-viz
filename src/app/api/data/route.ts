@@ -1,23 +1,5 @@
 import { NextResponse } from "next/server";
-export interface GeoJSON {
-  type: string;
-  features: Feature[];
-}
-
-export interface Feature {
-  type: string;
-  geometry: {
-    type: string;
-    coordinates: number[];
-  };
-  properties: {
-    assetName: any;
-    businessCategory: any;
-    riskRating: any;
-    riskFactors: any;
-    year: any;
-  };
-}
+import { Feature, GeoJSON } from '@/app/interface';
 
 const sheetsId = process.env.GOOGLE_SHEETS_ID!;
 const apiKey = process.env.GOOGLE_SHEETS_API!;

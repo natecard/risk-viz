@@ -1,8 +1,7 @@
 'use client'
 import { Map, Layer, Source, LayerProps, MapRef } from "react-map-gl";
 import { useEffect, useState, useRef } from "react";
-import { GeoJSON, Feature } from "../api/data/route";
-import { pointStyle } from "./mapStyle";
+import { GeoJSON, Feature } from '../api/data/route';
 const apiKey: string = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN!
 
   
@@ -28,13 +27,13 @@ const getData = () => {
 };
  console.log(data);
  const layerData: LayerProps = {
-        id: "point",
-        type: "circle",
-        paint: {
-            "circle-radius": 10,
-            "circle-color": "#007cbf",
-  },
- }
+   id: 'Point',
+   type: 'circle',
+   paint: {
+     'circle-radius': 10,
+     'circle-color': '#007cbf',
+   },
+ };
 
     return (
         <Map

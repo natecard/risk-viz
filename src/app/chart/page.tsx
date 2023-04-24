@@ -1,3 +1,3 @@
-export default function Chart(){
+import React from 'react';
 
-}
+export default function Chart() {}
