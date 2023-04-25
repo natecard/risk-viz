@@ -1,6 +1,6 @@
-export interface GeoJSON {
+export interface FeatureCollection {
   type: string;
-  features: unknown;
+  features: any;
 }
 
 export interface Feature {
