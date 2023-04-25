@@ -1,6 +1,6 @@
 export interface GeoJSON {
   type: string;
-  features: Feature[];
+  features: unknown;
 }
 
 export interface Feature {
@@ -13,7 +13,7 @@ export interface Feature {
     assetName: any;
     businessCategory: any;
     riskRating: any;
-    riskFactors: any;
+    riskFactors: any[];
     year: any;
   };
 }
