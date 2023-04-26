@@ -7,8 +7,8 @@ export async function GET(){
 const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetsId}/values/Sheet1?alt=json&key=${apiKey}`)
 const jsonData = await response.json()
 function convertToGeoJSON(data: any) {
-  const geoJSON: GeoJSON = {
-    type: "FeatureCollection",
+  const geoJSON: FeatureCollection = {
+    type: 'FeatureCollection',
     features: [],
   };
   // Remove the header row
