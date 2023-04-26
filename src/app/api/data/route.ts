@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { Feature, GeoJSON } from '@/app/interface';
+import { Feature, FeatureCollection } from '@/app/interface';
 
 const sheetsId = process.env.GOOGLE_SHEETS_ID!;
 const apiKey = process.env.GOOGLE_SHEETS_API!;
