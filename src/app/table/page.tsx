@@ -1,4 +1,4 @@
-import { Feature, GeoJSON } from '../interface';
+import { Feature, FeatureCollection } from '../interface';
 export default function Table() {
   return (
     <tr className=''>
