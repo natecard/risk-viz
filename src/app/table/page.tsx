@@ -1,4 +1,4 @@
-import { Feature, FeatureCollection } from '../interface';
+import { FeatureCollection, Feature } from 'geojson';
 export default function Table() {
   return (
     <div>
