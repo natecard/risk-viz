@@ -2,7 +2,7 @@ import { FeatureCollection } from 'geojson';
 import DataMap from './Components/MapComponent';
 import { convertJSON, convertToGeoJSON } from '../jsonToGeo';
 
-const response = await fetch('/api/data', {
+const response = await fetch(process.env.NEXT_PUBLIC_WEB_URL! + '/api/data', {
   cache: 'no-cache',
 });
 const data = await response.json();
