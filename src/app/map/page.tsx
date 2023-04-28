@@ -1,12 +1,17 @@
-import DataMap from './MapComponent';
-const response = await fetch('http://localhost:3000/api/data');
-const data = await response.text();
+import { FeatureCollection } from 'geojson';
+import DataMap from './Components/MapComponent';
+import { convertJSON, convertToGeoJSON } from '../jsonToGeo';
+
+const response = await fetch('http://localhost:3000/api/data', {
+  cache: 'no-cache',
+});
+const data = await response.json();
+const jsonData = convertJSON(data);
+const geoData: FeatureCollection = convertToGeoJSON(jsonData);
 export default function Map() {
-  console.log(data);
   return (
     <div>
-      {' '}
-      <DataMap data={data} />
+      <DataMap data={geoData} />
     </div>
   );
 }

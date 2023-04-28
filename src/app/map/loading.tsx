@@ -1,3 +1,5 @@
 export default function Loading(){
-    return <p className="py-96">Loading....</p>
+    return (
+      <p className=' flex justify-center py-96 align-middle'>Loading....</p>
+    );
 }

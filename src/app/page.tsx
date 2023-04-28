@@ -5,7 +5,7 @@ export default async function Home() {
     <div className=''>
       <main className='flex flex-row justify-center py-72'>
         <div className='px-8'>
-          <Link prefetch href='/map'>
+          <Link href='/map'>
             <button>Data Map</button>
           </Link>
         </div>

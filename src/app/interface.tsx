@@ -1,8 +1,3 @@
-export interface FeatureCollection {
-  type: string;
-  features: any;
-}
-
 export interface Feature {
   type: string;
   geometry: {
