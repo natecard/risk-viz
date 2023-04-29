@@ -23,10 +23,10 @@ export default function DataMap(props: { data: FeatureCollection }) {
     type: 'circle',
     paint: {
       'circle-radius': {
-        base: 10,
+        base: 5,
         stops: [
-          [12, 15],
-          [22, 100],
+          [5, 10],
+          [12, 10],
         ],
       },
       'circle-color': {
@@ -65,7 +65,6 @@ export default function DataMap(props: { data: FeatureCollection }) {
           <ControlPanel
             onChange={(value: SetStateAction<number>) => {
               setYear(value);
-              console.log(value);
             }}
             year={year}
           />

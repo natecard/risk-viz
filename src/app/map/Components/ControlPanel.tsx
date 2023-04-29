@@ -15,7 +15,7 @@ export default function ControlPanel(props: { onChange?: any; year?: number }) {
           min={2030}
           max={2070}
           step={10}
-          onChange={(evt) => props.onChange(evt.target.value)}
+          onChange={(evt) => props.onChange(Number(evt.target.value))}
         />
       </div>
     </div>
