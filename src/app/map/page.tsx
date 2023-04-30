@@ -1,5 +1,5 @@
-import { FeatureCollection } from 'geojson';
 import DataMap from './Components/MapComponent';
+import { FeatureCollection } from 'geojson';
 import { convertJSON, convertToGeoJSON } from '../jsonToGeo';
 
 const response = await fetch(process.env.NEXT_PUBLIC_WEB_URL! + '/api/data', {
@@ -7,7 +7,7 @@ const response = await fetch(process.env.NEXT_PUBLIC_WEB_URL! + '/api/data', {
 });
 const data = await response.json();
 const jsonData = convertJSON(data);
-const geoData: FeatureCollection = convertToGeoJSON(jsonData);
+const geoData = convertToGeoJSON(jsonData);
 export default function Map() {
   return (
     <div>
