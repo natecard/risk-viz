@@ -1,7 +1,9 @@
 'use client';
-import { Line } from 'react-chartjs-2';
-import { Chart } from 'chart.js';
-export default function ChartComponent(props: { data: any }) {
-  const { data } = props;
-  return <Line data={data}></Line>;
+import { AgChartsReact } from 'ag-charts-react';
+export default function ChartComponent() {
+  return (
+    <div>
+      <h1>Hello World</h1>
+    </div>
+  );
 }
