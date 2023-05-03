@@ -1,6 +1,6 @@
 import DataMap from './map/Components/MapComponent';
 import TableComponent from './table/Components/TableComponent';
-import ChartComponent from './chart/Components/ChartComponent';
+import { ChartComponent } from './chart/Components/ChartComponent';
 import { convertJSON, convertToGeoJSON } from './jsonToGeo';
 
 const response = await fetch(process.env.NEXT_PUBLIC_WEB_URL! + '/api/data', {
@@ -19,9 +19,9 @@ export default async function Home() {
         <div className='px-8'>
           <TableComponent />
         </div>
-        <div className='px-8'>
+        {/* <div className='px-8'>
           <ChartComponent />
-        </div>
+        </div> */}
       </main>
     </div>
   );
