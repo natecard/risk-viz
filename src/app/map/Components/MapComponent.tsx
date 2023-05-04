@@ -10,10 +10,18 @@ const apiKey: string = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN!;
 export default function DataMap() {
   const { geoData, setGeoData, year, setYear } = useContext(DataContext);
   const filteredData: FeatureCollection = useMemo(() => {
+    console.log(geoData);
+    if (!geoData || !geoData.features) {
+      return { type: 'FeatureCollection', features: [] };
+    }
     const filteredFeatures = geoData.features.filter(
       (feature: any) => feature.properties.Year === year,
     );
-    return { ...geoData, features: filteredFeatures };
+    return {
+      ...geoData,
+      type: 'FeatureCollection',
+      features: filteredFeatures,
+    };
   }, [geoData, year]);
 
   const riskRatingLayer: LayerProps = {
@@ -45,7 +53,7 @@ export default function DataMap() {
   };
 
   return (
-    <div>
+    <div className='flex justify-center'>
       <Suspense fallback={<Loading />}>
         <Map
           initialViewState={{
@@ -54,7 +62,7 @@ export default function DataMap() {
             zoom: 6,
           }}
           mapStyle='mapbox://styles/mapbox/dark-v11'
-          style={{ width: '100vw', height: '60vh' }}
+          style={{ width: '90vw', height: '70vh' }}
           mapboxAccessToken={apiKey}
         >
           <Source id='data' type='geojson' data={filteredData}>

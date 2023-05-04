@@ -1,3 +1,4 @@
+'use client';
 export default function ControlPanel(props: { onChange?: any; year?: number }) {
   const { year } = props;
   return (

@@ -12,6 +12,9 @@ interface RiskFactorsCellProps {
   value: Record<string, number>;
 }
 async function createRowData(features: Feature[]) {
+  if (!features) {
+    return [];
+  }
   //Initialize rowData array
   let rowData: any = [];
   for (let i = 0; i < features.length; i++) {
@@ -43,13 +46,16 @@ export default function TableComponent() {
 
   useEffect(() => {
     async function fetchData() {
+      if (!geoData || !geoData.features) {
+        return null;
+      }
       console.log('Fetching row data...');
       const data = await createRowData(geoData.features);
       console.log('Setting row data...');
       setRowData(data);
     }
     fetchData();
-  }, []);
+  }, [geoData]);
 
   // Risk factor object rendering
   const RiskFactorsCell: React.FC<RiskFactorsCellProps> = ({ value }) => {
