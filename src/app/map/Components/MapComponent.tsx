@@ -1,22 +1,20 @@
 'use client';
-import { Map, Layer, Source, LayerProps, Marker } from 'react-map-gl';
-import { useEffect, useState, Suspense, useMemo, SetStateAction } from 'react';
+import { Map, Layer, Source, LayerProps } from 'react-map-gl';
+import { Suspense, useMemo, useContext } from 'react';
+import { DataContext } from '@/app/contextProvider';
 import Loading from '../loading';
 import ControlPanel from './ControlPanel';
 import { FeatureCollection } from 'geojson';
-import { Feature } from '@/app/interface';
 const apiKey: string = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN!;
 
-export default function DataMap(props: { data: FeatureCollection }) {
-  const { data } = props;
-  const [year, setYear] = useState(2030);
-
+export default function DataMap() {
+  const { geoData, setGeoData, year, setYear } = useContext(DataContext);
   const filteredData: FeatureCollection = useMemo(() => {
-    const filteredFeatures = data.features.filter(
+    const filteredFeatures = geoData.features.filter(
       (feature: any) => feature.properties.Year === year,
     );
-    return { ...data, features: filteredFeatures };
-  }, [data, year]);
+    return { ...geoData, features: filteredFeatures };
+  }, [geoData, year]);
 
   const riskRatingLayer: LayerProps = {
     id: 'Point',
@@ -63,7 +61,7 @@ export default function DataMap(props: { data: FeatureCollection }) {
             <Layer {...riskRatingLayer} />
           </Source>
           <ControlPanel
-            onChange={(value: SetStateAction<number>) => {
+            onChange={(value: number) => {
               setYear(value);
             }}
             year={year}

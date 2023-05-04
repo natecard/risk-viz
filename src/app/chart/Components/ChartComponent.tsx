@@ -1,60 +1,80 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { ChartDataCustomTypesPerDataset } from 'chart.js';
-import { Chart, Line } from 'react-chartjs-2';
-import { convertJSON, convertToGeoJSON } from '@/app/jsonToGeo';
-import { FeatureCollection, GeoJsonProperties, Geometry } from 'geojson';
-
-async function createData() {
-  console.log('Fetching data...');
-  //Fetch cached with Next.js 13
-  const request = await fetch(process.env.NEXT_PUBLIC_WEB_URL! + '/api/data');
-  const response = await request.json();
-  console.log('Converting data...');
-  let jsonData = convertJSON(response);
-  let geoData = convertToGeoJSON(jsonData);
-  //Destructure array
-  const { features } = geoData;
-}
-function extractChartData(features: FeatureCollection[]): {
-  years: number[];
-  riskRatings: number[];
-} {
-  const years: number[] = [];
-  const riskRatings: number[] = [];
-  if (Array.isArray(features)) {
-    features.forEach((feature: any) => {
-      if (feature.properties && feature.geometry.type === 'Point') {
-        const year = feature.properties.Year;
-        const riskRating = feature.properties['Risk Rating'];
-
-        if (!years.includes(year)) {
-          years.push(year);
-          riskRatings.push(riskRating);
-        }
-      }
-    });
-  }
-
-  return { years, riskRatings };
-}
-
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import { Line } from 'react-chartjs-2';
+import { Feature } from 'geojson';
+import { useContext } from 'react';
+import { DataContext } from '@/app/contextProvider';
 
 type ChartData = {
   labels: number[];
   datasets: {
     label: string;
-    data: number[];
+    data: number[] | string[];
     fill: boolean;
     borderColor: string;
     tension: number;
   }[];
 };
 
-export function ChartComponent( features: any ): JSX.Element {
-  const { years, riskRatings } = extractChartData(features);
+export default function ChartComponent() {
+  const { geoData, setGeoData, year, setYear } = useContext(DataContext);
+  const { features } = geoData;
+  ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title,
+    Tooltip,
+    Legend,
+  );
+
+  const options = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top' as const,
+      },
+      title: {
+        display: true,
+        text: 'Risk Ratings Over Time',
+      },
+    },
+  };
+  function extractChartData(features: Feature[]): {
+    yearsData: number[];
+    riskRatings: number[];
+  } {
+    const yearsData: number[] = [];
+    const riskRatings: number[] = [];
+    if (Array.isArray(features)) {
+      features.forEach((feature: any) => {
+        if (feature.properties && feature.geometry.type === 'Point') {
+          const year = feature.properties.Year;
+          const riskRating = feature.properties['Risk Rating'];
+
+          if (!yearsData.includes(year)) {
+            yearsData.push(year);
+            riskRatings.push(riskRating);
+          }
+        }
+      });
+    }
+
+    return { yearsData, riskRatings };
+  }
+  const { yearsData, riskRatings } = extractChartData(features);
   const chartData: ChartData = {
-    labels: years,
+    labels: yearsData,
     datasets: [
       {
         label: 'Risk Ratings',
@@ -65,22 +85,5 @@ export function ChartComponent( features: any ): JSX.Element {
       },
     ],
   };
-  return <Line data={chartData} />;
-};
-
-// export default function ChartComponent() {
-//   const [chartData, setChartData] = useState<any>([]);
-//   useEffect(() => {
-//     async function fetchData() {
-//       const data = await createData();
-//       setChartData(data);
-//       console.log(data);
-//     }
-//     fetchData();
-//   }, []);
-//   return (
-//     <Chart data={chartData} width={500} height={500} type={'line'}>
-//       <Line data={chartData.feature[i].properties['Risk Rating']} />
-//     </Chart>
-//   );
-// }
+  return <Line options={options} data={chartData} />;
+}
