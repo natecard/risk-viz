@@ -16,7 +16,7 @@ export default function RootLayout({
     <html lang='en'>
       <body>
         <DataProvider>
-          <header className='flex flex-row bg-blue-400 pb-2 pt-4'>
+          <header className=' flex flex-row bg-gray-400 pb-2 pt-4'>
             <div className='px-8'>
               <Link href='/'>
                 <h1>Home</h1>

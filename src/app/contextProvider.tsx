@@ -14,9 +14,7 @@ type GroupablePropertyKey =
   | 'longitude'
   | 'riskFactors'
   | 'riskRating'
-  | 'year'
-  | string;
-
+  | 'year';
 interface DataProviderProps {
   children: ReactNode;
 }
@@ -41,7 +39,7 @@ export default function DataProvider({
   const [year, setYear] = useState(2030);
   const [inputValue, setInputValue] = useState<string | number>('');
   const [selectedProperty, setSelectedProperty] = useState('assetName');
-  const [groupBy, setGroupBy] = useState<GroupablePropertyKey>('year');
+  const [groupBy, setGroupBy] = useState<GroupablePropertyKey>('assetName');
 
   useEffect(() => {
     async function fetchData() {

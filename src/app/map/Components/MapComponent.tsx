@@ -64,6 +64,7 @@ export default function DataMap() {
           mapStyle='mapbox://styles/mapbox/dark-v11'
           style={{ width: '90vw', height: '70vh' }}
           mapboxAccessToken={apiKey}
+          attributionControl={false}
         >
           <Source id='data' type='geojson' data={filteredData}>
             <Layer {...riskRatingLayer} />

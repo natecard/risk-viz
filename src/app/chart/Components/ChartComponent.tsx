@@ -18,8 +18,6 @@ type GroupablePropertyKey =
 
 export default function ChartComponent() {
   const chartRef = useRef<HTMLDivElement>(null);
-  const [localGroupBy, setLocalGroupBy] =
-    useState<GroupablePropertyKey>('year');
 
   const {
     geoData,
@@ -42,9 +40,20 @@ export default function ChartComponent() {
     }
     const groups: Groups = {};
 
+    // Map properties to the ones with spaces in the data
+    const propertyMap: { [key in GroupablePropertyKey]: string } = {
+      assetName: 'Asset Name',
+      businessCategory: 'Business Category',
+      latitude: 'Latitude',
+      longitude: 'Longitude',
+      riskFactors: 'Risk Factors',
+      riskRating: 'Risk Rating',
+      year: 'Year',
+    };
+
     geoData.features.forEach((feature: Feature) => {
-      if (feature.properties && feature.properties[property]) {
-        const key = feature.properties[property].toString();
+      if (feature.properties && feature.properties[propertyMap[property]]) {
+        const key = feature.properties[propertyMap[property]].toString();
         if (!groups[key]) {
           groups[key] = [];
         }
@@ -116,16 +125,11 @@ export default function ChartComponent() {
 
       data.push(groupData);
     });
-    console.log(data);
-
     return data;
   }
   useEffect(() => {
-    console.log('selectedProperty:', selectedProperty); // Add this line for debugging
-    console.log('groupBy:', groupBy); // Add this line for debugging
     if (geoData) {
-      const groupedFeatures = groupByProperty(geoData, localGroupBy);
-      console.log('groupedFeatures:', groupedFeatures); // Add this line
+      const groupedFeatures = groupByProperty(geoData, groupBy);
       const data = extractChartData(groupedFeatures);
       const colors = {
         2030: 'blue',
@@ -137,7 +141,6 @@ export default function ChartComponent() {
       const chart = Plot.plot({
         x: {
           label: 'Year',
-          grid: true,
           ticks: 5,
           tickFormat: format(''),
         },
@@ -179,10 +182,8 @@ export default function ChartComponent() {
         <label>
           Group by:
           <select
-            value={localGroupBy}
-            onChange={(e) =>
-              setLocalGroupBy(e.target.value as GroupablePropertyKey)
-            }
+            value={groupBy}
+            onChange={(e) => setGroupBy(e.target.value as GroupablePropertyKey)}
           >
             <option value='assetName'>Asset Name</option>
             <option value='businessCategory'>Business Category</option>
@@ -201,7 +202,7 @@ export default function ChartComponent() {
         />
         <button
           className='rounded-sm border px-2'
-          onClick={() => setGroupBy(localGroupBy)}
+          onClick={() => setGroupBy(groupBy)}
         >
           Group
         </button>
