@@ -1,3 +1,8 @@
+References and ChatGPT log: 
+
+https://www.notion.so/RiskThinking-ai-07db50a06a664ab4991af76219f604a2?pvs=4
+
+
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started
