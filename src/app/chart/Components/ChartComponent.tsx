@@ -1,14 +1,24 @@
 'use client';
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FeatureCollection, Feature } from 'geojson';
 import { useContext } from 'react';
 import { DataContext } from '@/app/contextProvider';
 import * as Plot from '@observablehq/plot';
 import { format, select } from 'd3';
+type PropertyKey = keyof Feature['properties'];
+type GroupablePropertyKey =
+  | 'assetName'
+  | 'businessCategory'
+  | 'latitude'
+  | 'longitude'
+  | 'riskFactors'
+  | 'riskRating'
+  | 'year';
 
 export default function ChartComponent() {
   const chartRef = useRef<HTMLDivElement>(null);
+
   const {
     geoData,
     setGeoData,
@@ -21,13 +31,29 @@ export default function ChartComponent() {
     groupBy,
     setGroupBy,
   } = useContext(DataContext);
-  function groupByProperty(geoData: FeatureCollection): FeatureCollection[] {
-    const groups: Record<string, Feature[]> = {};
+  function groupByProperty(
+    geoData: FeatureCollection,
+    property: GroupablePropertyKey,
+  ): FeatureCollection[] {
+    interface Groups {
+      [key: string]: Feature[];
+    }
+    const groups: Groups = {};
 
-    geoData.features.forEach((feature) => {
-      if (feature.properties && feature.properties[groupBy]) {
-        const key = feature.properties[groupBy].toString();
+    // Map properties to the ones with spaces in the data
+    const propertyMap: { [key in GroupablePropertyKey]: string } = {
+      assetName: 'Asset Name',
+      businessCategory: 'Business Category',
+      latitude: 'Latitude',
+      longitude: 'Longitude',
+      riskFactors: 'Risk Factors',
+      riskRating: 'Risk Rating',
+      year: 'Year',
+    };
 
+    geoData.features.forEach((feature: Feature) => {
+      if (feature.properties && feature.properties[propertyMap[property]]) {
+        const key = feature.properties[propertyMap[property]].toString();
         if (!groups[key]) {
           groups[key] = [];
         }
@@ -99,11 +125,12 @@ export default function ChartComponent() {
 
       data.push(groupData);
     });
-
     return data;
   }
   useEffect(() => {
     if (geoData) {
+      const groupedFeatures = groupByProperty(geoData, groupBy);
+      const data = extractChartData(groupedFeatures);
       const colors = {
         2030: 'blue',
         2040: 'green',
@@ -111,12 +138,9 @@ export default function ChartComponent() {
         2060: 'purple',
         2070: 'orange',
       };
-      const groupedFeatures = groupByProperty(geoData);
-      const data = extractChartData(groupedFeatures);
       const chart = Plot.plot({
         x: {
           label: 'Year',
-          grid: true,
           ticks: 5,
           tickFormat: format(''),
         },
@@ -158,8 +182,8 @@ export default function ChartComponent() {
         <label>
           Group by:
           <select
-            value={selectedProperty}
-            onChange={(e) => setSelectedProperty(e.target.value)}
+            value={groupBy}
+            onChange={(e) => setGroupBy(e.target.value as GroupablePropertyKey)}
           >
             <option value='assetName'>Asset Name</option>
             <option value='businessCategory'>Business Category</option>
@@ -178,7 +202,7 @@ export default function ChartComponent() {
         />
         <button
           className='rounded-sm border px-2'
-          onClick={() => setGroupBy(selectedProperty)}
+          onClick={() => setGroupBy(groupBy)}
         >
           Group
         </button>

@@ -181,6 +181,8 @@ export default function TableComponent() {
       style={{ height: '100vh', width: '100vw' }}
     >
       <AgGridReact
+        pagination={true}
+        paginationAutoPageSize={true}
         columnDefs={columnDefs}
         ref={gridRef}
         rowData={rowData}

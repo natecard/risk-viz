@@ -2,11 +2,10 @@
 export default function ControlPanel(props: { onChange?: any; year?: number }) {
   const { year } = props;
   return (
-    <div className='mx-12 mt-12 w-2/5 rounded border bg-gray-400 px-2'>
-      <h3>Options</h3>
+    <div className='m-2 flex w-4/5 flex-col justify-center rounded border bg-gray-300 px-2'>
       <p>
         Use this to see the different risk factor ratings per year. <br />
-        Currently : <b>{year}</b>
+        Currently : {year}
       </p>
       <div key={'decade'} className='flex flex-row'>
         <label className='px-2'>Year</label>
