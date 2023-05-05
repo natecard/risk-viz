@@ -11,6 +11,12 @@ export const DataContext = createContext({
   setGeoData: (data: FeatureCollection<Geometry, GeoJsonProperties>) => {},
   year: 0,
   setYear: (year: number) => {},
+  inputValue: undefined as string | number | undefined,
+  setInputValue: (inputValue: string | number) => {},
+  selectedProperty: 'latitude',
+  setSelectedProperty: (selectedProperty: string) => {},
+  groupBy: undefined as string | number | undefined,
+  setGroupBy: (groupBy: string | number) => {},
 });
 
 export default function DataProvider({
@@ -19,6 +25,9 @@ export default function DataProvider({
   const [geoData, setGeoData] =
     useState<FeatureCollection<Geometry, GeoJsonProperties>>();
   const [year, setYear] = useState(2030);
+  const [inputValue, setInputValue] = useState<string | number>();
+  const [selectedProperty, setSelectedProperty] = useState('assetName');
+  const [groupBy, setGroupBy] = useState<string | number>();
 
   useEffect(() => {
     async function fetchData() {
@@ -37,7 +46,20 @@ export default function DataProvider({
   }, []);
 
   return (
-    <DataContext.Provider value={{ geoData, setGeoData, year, setYear }}>
+    <DataContext.Provider
+      value={{
+        geoData,
+        setGeoData,
+        year,
+        setYear,
+        inputValue,
+        setInputValue,
+        selectedProperty,
+        setSelectedProperty,
+        groupBy,
+        setGroupBy,
+      }}
+    >
       {children}
     </DataContext.Provider>
   );
