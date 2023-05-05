@@ -1,7 +1,21 @@
 'use client';
-import { FeatureCollection, GeoJsonProperties, Geometry } from 'geojson';
+import {
+  Feature,
+  FeatureCollection,
+  GeoJsonProperties,
+  Geometry,
+} from 'geojson';
 import { ReactNode, createContext, useEffect, useState } from 'react';
 import { convertJSON, convertToGeoJSON } from './jsonToGeo';
+type GroupablePropertyKey =
+  | 'assetName'
+  | 'businessCategory'
+  | 'latitude'
+  | 'longitude'
+  | 'riskFactors'
+  | 'riskRating'
+  | 'year'
+  | string;
 
 interface DataProviderProps {
   children: ReactNode;
@@ -11,12 +25,12 @@ export const DataContext = createContext({
   setGeoData: (data: FeatureCollection<Geometry, GeoJsonProperties>) => {},
   year: 0,
   setYear: (year: number) => {},
-  inputValue: undefined as string | number | undefined,
+  inputValue: '' as string | number,
   setInputValue: (inputValue: string | number) => {},
-  selectedProperty: 'latitude',
+  selectedProperty: '' as string,
   setSelectedProperty: (selectedProperty: string) => {},
-  groupBy: undefined as string | number | undefined,
-  setGroupBy: (groupBy: string | number) => {},
+  groupBy: '' as GroupablePropertyKey,
+  setGroupBy: (groupBy: GroupablePropertyKey) => {},
 });
 
 export default function DataProvider({
@@ -25,9 +39,9 @@ export default function DataProvider({
   const [geoData, setGeoData] =
     useState<FeatureCollection<Geometry, GeoJsonProperties>>();
   const [year, setYear] = useState(2030);
-  const [inputValue, setInputValue] = useState<string | number>();
+  const [inputValue, setInputValue] = useState<string | number>('');
   const [selectedProperty, setSelectedProperty] = useState('assetName');
-  const [groupBy, setGroupBy] = useState<string | number>();
+  const [groupBy, setGroupBy] = useState<GroupablePropertyKey>('year');
 
   useEffect(() => {
     async function fetchData() {
