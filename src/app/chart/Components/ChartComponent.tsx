@@ -1,11 +1,20 @@
 'use client';
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useContext } from 'react';
 import { FeatureCollection, Feature } from 'geojson';
-import { useContext } from 'react';
 import { DataContext } from '@/app/contextProvider';
-import * as Plot from '@observablehq/plot';
-import { format, select } from 'd3';
+import { select } from 'd3-selection';
+import {
+  axisBottom,
+  axisLeft,
+  scaleLinear,
+  scaleTime,
+  line,
+  scaleOrdinal,
+  schemeCategory10,
+  format,
+} from 'd3';
+
 type PropertyKey = keyof Feature['properties'];
 type GroupablePropertyKey =
   | 'assetName'
@@ -16,58 +25,7 @@ type GroupablePropertyKey =
   | 'riskRating'
   | 'year';
 
-export default function ChartComponent() {
-  const chartRef = useRef<HTMLDivElement>(null);
-
-  const {
-    geoData,
-    setGeoData,
-    year,
-    setYear,
-    inputValue,
-    setInputValue,
-    selectedProperty,
-    setSelectedProperty,
-    groupBy,
-    setGroupBy,
-  } = useContext(DataContext);
-  function groupByProperty(
-    geoData: FeatureCollection,
-    property: GroupablePropertyKey,
-  ): FeatureCollection[] {
-    interface Groups {
-      [key: string]: Feature[];
-    }
-    const groups: Groups = {};
-
-    // Map properties to the ones with spaces in the data
-    const propertyMap: { [key in GroupablePropertyKey]: string } = {
-      assetName: 'Asset Name',
-      businessCategory: 'Business Category',
-      latitude: 'Latitude',
-      longitude: 'Longitude',
-      riskFactors: 'Risk Factors',
-      riskRating: 'Risk Rating',
-      year: 'Year',
-    };
-
-    geoData.features.forEach((feature: Feature) => {
-      if (feature.properties && feature.properties[propertyMap[property]]) {
-        const key = feature.properties[propertyMap[property]].toString();
-        if (!groups[key]) {
-          groups[key] = [];
-        }
-        groups[key].push(feature);
-      }
-    });
-
-    return Object.values(groups).map((group) => ({
-      type: 'FeatureCollection',
-      features: group,
-    }));
-  }
-
-  function extractChartData(groupedGeoData: FeatureCollection[]): {
+  export function extractChartData(groupedGeoData: FeatureCollection[]): {
     year: number;
     riskRating: number;
     assetName: string;
@@ -127,89 +85,181 @@ export default function ChartComponent() {
     });
     return data;
   }
-  useEffect(() => {
-    if (geoData) {
-      const groupedFeatures = groupByProperty(geoData, groupBy);
-      const data = extractChartData(groupedFeatures);
-      const colors = {
-        2030: 'blue',
-        2040: 'green',
-        2050: 'yellow',
-        2060: 'purple',
-        2070: 'orange',
-      };
-      const chart = Plot.plot({
-        x: {
-          label: 'Year',
-          ticks: 5,
-          tickFormat: format(''),
-        },
-        y: {
-          label: 'Risk Rating',
-          grid: true,
-          ticks: 10,
-        },
-        color: {
-          domain: Object.keys(colors),
-          range: Object.values(colors),
-        },
-        marks: [
-          Plot.ruleY([0]),
-          ...data.map((groupData) =>
-            Plot.line(groupData, {
-              x: 'year',
-              y: 'riskRating',
-            }),
-          ),
-        ],
-        width: 700,
-        height: 600,
-      });
-
-      if (chartRef.current) {
-        select(chartRef.current).selectAll('*').remove();
-        select(chartRef.current).node()?.appendChild(chart);
-      }
-
-      return () => {
-        select(chartRef.current).selectAll('*').remove();
+  export function filterByProperty(
+    geoData: FeatureCollection,
+    property: GroupablePropertyKey,
+    filterValue: string | number,
+  ): FeatureCollection {
+    if (!geoData) {
+      return {
+        type: 'FeatureCollection',
+        features: [], // Return an empty features array
       };
     }
-  }, [geoData, groupBy]);
-  return (
-    <>
-      <div className='flex w-full justify-center py-2'>
-        <label>
-          Group by:
-          <select
-            value={groupBy}
-            onChange={(e) => setGroupBy(e.target.value as GroupablePropertyKey)}
+    // Return all features if filterValue is empty or not provided
+    if (!filterValue) {
+      return geoData;
+    }
+
+    interface Groups {
+      [key: string]: Feature[];
+    }
+    const groups: Groups = {};
+
+    // Map properties to the ones with spaces in the data
+    const propertyMap: { [key in GroupablePropertyKey]: string } = {
+      assetName: 'Asset Name',
+      businessCategory: 'Business Category',
+      latitude: 'Latitude',
+      longitude: 'Longitude',
+      riskFactors: 'Risk Factors',
+      riskRating: 'Risk Rating',
+      year: 'Year',
+    };
+
+    const filteredFeatures: Feature[] = geoData.features.filter(
+      (feature: Feature) => {
+        if (feature.properties && feature.properties[propertyMap[property]]) {
+          return (
+            feature.properties[propertyMap[property]].toString() ===
+            filterValue.toString()
+          );
+        }
+        return false;
+      },
+    );
+
+    return {
+      type: 'FeatureCollection',
+      features: filteredFeatures,
+    };
+  }
+
+  export default function ChartComponent() {
+    const chartRef = useRef<HTMLDivElement>(null);
+
+    const {
+      geoData,
+      setGeoData,
+      year,
+      setYear,
+      inputValue,
+      setInputValue,
+      selectedProperty,
+      setSelectedProperty,
+      groupBy,
+      setGroupBy,
+    } = useContext(DataContext);
+
+    const onLineClick = (groupData: any): void => {
+      setGeoData(groupData);
+    };
+    useEffect(() => {
+      if (geoData) {
+        const filteredFeatures = filterByProperty(geoData, groupBy, inputValue);
+        const data = extractChartData([filteredFeatures]);
+        const width = 700;
+        const height = 600;
+        const margin = { top: 20, right: 20, bottom: 50, left: 50 };
+
+        const xScale = scaleLinear()
+          .domain([2030, 2070])
+          .range([margin.left, width - margin.right]);
+
+        const yScale = scaleLinear()
+          .domain([0, 1])
+          .range([height - margin.bottom, margin.top]);
+
+        const colorScale = scaleOrdinal(schemeCategory10);
+
+        const xAxis = axisBottom(xScale).ticks(5).tickFormat(format('d')); // Add this line
+
+        const yAxis = axisLeft(yScale).ticks(10);
+
+        const d3line = line<{
+          year: number;
+          riskRating: number;
+          assetName: string;
+          latitude: number;
+          longitude: number;
+          riskFactors: object;
+          businessCategory: string;
+        }>()
+          .x((d) => xScale(d.year))
+          .y((d) => yScale(d.riskRating));
+
+        if (chartRef.current) {
+          select(chartRef.current).selectAll('*').remove();
+
+          const svg = select(chartRef.current)
+            .append('svg')
+            .attr('width', width)
+            .attr('height', height);
+
+          svg
+            .append('g')
+            .attr('transform', `translate(0,${height - margin.bottom})`)
+            .call(xAxis);
+
+          svg
+            .append('g')
+            .attr('transform', `translate(${margin.left},0)`)
+            .call(yAxis);
+
+          data.forEach((groupData, i) => {
+            svg
+              .append('path')
+              .datum(groupData)
+              .attr('fill', 'none')
+              .attr('stroke', colorScale(i.toString()))
+              .attr('stroke-width', 1.5)
+              .attr('d', d3line)
+              .on('click', () => onLineClick(groupData));
+          });
+        }
+
+        return () => {
+          select(chartRef.current).selectAll('*').remove();
+        };
+      }
+    }, [geoData, groupBy, inputValue]);
+
+    return (
+      <>
+        <div className='flex w-full justify-center py-2'>
+          <label>
+            Group by:
+            <select
+              value={groupBy}
+              onChange={(e) =>
+                setGroupBy(e.target.value as GroupablePropertyKey)
+              }
+            >
+              <option value='assetName'>Asset Name</option>
+              <option value='businessCategory'>Business Category</option>
+              <option value='latitude'>Latitude</option>
+              <option value='longitude'>Longitude</option>
+              <option value='riskFactors'>Risk Factors</option>
+              <option value='riskRating'>Risk Rating</option>
+              <option value='year'>Year</option>
+            </select>
+          </label>
+          <input
+            className='mx-2 border'
+            type='text'
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+          />
+          <button
+            className='rounded-sm border px-2'
+            onClick={() => setGroupBy(groupBy)}
           >
-            <option value='assetName'>Asset Name</option>
-            <option value='businessCategory'>Business Category</option>
-            <option value='latitude'>Latitude</option>
-            <option value='longitude'>Longitude</option>
-            <option value='riskFactors'>Risk Factors</option>
-            <option value='riskRating'>Risk Rating</option>
-            <option value='year'>Year</option>
-          </select>
-        </label>
-        <input
-          className='mx-2 border'
-          type='text'
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-        />
-        <button
-          className='rounded-sm border px-2'
-          onClick={() => setGroupBy(groupBy)}
-        >
-          Group
-        </button>
-      </div>
-      <div className='flex w-full justify-center'>
-        <div ref={chartRef}></div>
-      </div>
-    </>
-  );
-}
+            Group
+          </button>
+        </div>
+        <div className='flex w-full justify-center'>
+          <div ref={chartRef}></div>
+        </div>
+      </>
+    );
+  }
