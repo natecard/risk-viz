@@ -1,10 +1,5 @@
 'use client';
-import {
-  Feature,
-  FeatureCollection,
-  GeoJsonProperties,
-  Geometry,
-} from 'geojson';
+import { FeatureCollection, GeoJsonProperties, Geometry } from 'geojson';
 import { ReactNode, createContext, useEffect, useState } from 'react';
 import { convertJSON, convertToGeoJSON } from './jsonToGeo';
 type GroupablePropertyKey =

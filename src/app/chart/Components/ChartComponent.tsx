@@ -1,11 +1,20 @@
 'use client';
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useContext } from 'react';
 import { FeatureCollection, Feature } from 'geojson';
-import { useContext } from 'react';
 import { DataContext } from '@/app/contextProvider';
-import * as Plot from '@observablehq/plot';
-import { format, select } from 'd3';
+import { select } from 'd3-selection';
+import {
+  axisBottom,
+  axisLeft,
+  scaleLinear,
+  scaleTime,
+  line,
+  scaleOrdinal,
+  schemeCategory10,
+  format,
+} from 'd3';
+
 type PropertyKey = keyof Feature['properties'];
 type GroupablePropertyKey =
   | 'assetName'
@@ -31,10 +40,11 @@ export default function ChartComponent() {
     groupBy,
     setGroupBy,
   } = useContext(DataContext);
-  function groupByProperty(
+  function filterByProperty(
     geoData: FeatureCollection,
     property: GroupablePropertyKey,
-  ): FeatureCollection[] {
+    filterValue: string | number,
+  ): FeatureCollection {
     interface Groups {
       [key: string]: Feature[];
     }
@@ -51,20 +61,22 @@ export default function ChartComponent() {
       year: 'Year',
     };
 
-    geoData.features.forEach((feature: Feature) => {
-      if (feature.properties && feature.properties[propertyMap[property]]) {
-        const key = feature.properties[propertyMap[property]].toString();
-        if (!groups[key]) {
-          groups[key] = [];
+    const filteredFeatures: Feature[] = geoData.features.filter(
+      (feature: Feature) => {
+        if (feature.properties && feature.properties[propertyMap[property]]) {
+          return (
+            feature.properties[propertyMap[property]].toString() ===
+            filterValue.toString()
+          );
         }
-        groups[key].push(feature);
-      }
-    });
+        return false;
+      },
+    );
 
-    return Object.values(groups).map((group) => ({
+    return {
       type: 'FeatureCollection',
-      features: group,
-    }));
+      features: filteredFeatures,
+    };
   }
 
   function extractChartData(groupedGeoData: FeatureCollection[]): {
@@ -129,53 +141,74 @@ export default function ChartComponent() {
   }
   useEffect(() => {
     if (geoData) {
-      const groupedFeatures = groupByProperty(geoData, groupBy);
-      const data = extractChartData(groupedFeatures);
-      const colors = {
-        2030: 'blue',
-        2040: 'green',
-        2050: 'yellow',
-        2060: 'purple',
-        2070: 'orange',
-      };
-      const chart = Plot.plot({
-        x: {
-          label: 'Year',
-          ticks: 5,
-          tickFormat: format(''),
-        },
-        y: {
-          label: 'Risk Rating',
-          grid: true,
-          ticks: 10,
-        },
-        color: {
-          domain: Object.keys(colors),
-          range: Object.values(colors),
-        },
-        marks: [
-          Plot.ruleY([0]),
-          ...data.map((groupData) =>
-            Plot.line(groupData, {
-              x: 'year',
-              y: 'riskRating',
-            }),
-          ),
-        ],
-        width: 700,
-        height: 600,
-      });
+      const filteredFeatures = filterByProperty(geoData, groupBy, inputValue);
+      const data = extractChartData([filteredFeatures]);
+
+      const width = 700;
+      const height = 600;
+      const margin = { top: 20, right: 20, bottom: 50, left: 50 };
+
+      const xScale = scaleLinear()
+        .domain([2000, 2100])
+        .range([margin.left, width - margin.right]);
+
+      const yScale = scaleLinear()
+        .domain([0, 1])
+        .range([height - margin.bottom, margin.top]);
+
+      const colorScale = scaleOrdinal(schemeCategory10);
+
+      const xAxis = axisBottom(xScale).ticks(5).tickFormat(format('d')); // Add this line
+
+      const yAxis = axisLeft(yScale).ticks(10);
+
+      const d3line = line<{
+        year: number;
+        riskRating: number;
+        assetName: string;
+        latitude: number;
+        longitude: number;
+        riskFactors: object;
+        businessCategory: string;
+      }>()
+        .x((d) => xScale(d.year))
+        .y((d) => yScale(d.riskRating));
 
       if (chartRef.current) {
         select(chartRef.current).selectAll('*').remove();
-        select(chartRef.current).node()?.appendChild(chart);
+
+        const svg = select(chartRef.current)
+          .append('svg')
+          .attr('width', width)
+          .attr('height', height);
+
+        svg
+          .append('g')
+          .attr('transform', `translate(0,${height - margin.bottom})`)
+          .call(xAxis);
+
+        svg
+          .append('g')
+          .attr('transform', `translate(${margin.left},0)`)
+          .call(yAxis);
+
+        data.forEach((groupData, i) => {
+          svg
+            .append('path')
+            .datum(groupData)
+            .attr('fill', 'none')
+            .attr('stroke', colorScale(i.toString()))
+            .attr('stroke-width', 1.5)
+            .attr('d', d3line);
+        });
       }
 
       return () => {
         select(chartRef.current).selectAll('*').remove();
       };
     }
-  }, [geoData, groupBy]);
+  }, [geoData, groupBy, inputValue]);
+
   return (
     <>
       <div className='flex w-full justify-center py-2'>
