@@ -7,29 +7,40 @@ import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { FirstDataRenderedEvent } from 'ag-grid-community';
 import { Feature } from 'geojson';
 import { DataContext } from '@/app/contextProvider';
+import {
+  extractChartData,
+  filterByProperty,
+} from '@/app/chart/Components/ChartComponent';
 
 interface RiskFactorsCellProps {
   value: Record<string, number>;
 }
-async function createRowData(features: Feature[]) {
-  if (!features) {
+async function createRowData(
+  data: {
+    year: number;
+    riskRating: number;
+    assetName: string;
+    latitude: number;
+    longitude: number;
+    riskFactors: object;
+    businessCategory: string;
+  }[][],
+) {
+  if (!data) {
     return [];
   }
   //Initialize rowData array
   let rowData: any = [];
-  for (let i = 0; i < features.length; i++) {
-    let feature = features[i];
-    //Checking properties of features
-    if (feature.properties && feature.geometry.type === 'Point') {
-      //Push to rowData state for rendering
+  for (const group of data) {
+    for (const entry of group) {
       rowData.push({
-        'Asset Name': feature.properties['Asset Name'],
-        Latitude: feature.geometry.coordinates[1],
-        Longitude: feature.geometry.coordinates[0],
-        'Business Category': feature.properties['Business Category'],
-        'Risk Rating': feature.properties['Risk Rating'],
-        'Risk Factors': feature.properties['Risk Factors'],
-        Year: feature.properties.Year,
+        'Asset Name': entry.assetName,
+        Latitude: entry.latitude,
+        Longitude: entry.longitude,
+        'Business Category': entry.businessCategory,
+        'Risk Rating': entry.riskRating,
+        'Risk Factors': entry.riskFactors,
+        Year: entry.year,
       });
     }
   }
@@ -39,7 +50,7 @@ async function createRowData(features: Feature[]) {
 }
 
 export default function TableComponent() {
-  const { geoData, setGeoData, year, setYear } = useContext(DataContext);
+  const { geoData, setGeoData, inputValue, groupBy } = useContext(DataContext);
   const gridRef = useRef<AgGridReact<any>>(null);
   //reinitialize array for state
   const [rowData, setRowData] = useState<any>([]);
@@ -50,12 +61,14 @@ export default function TableComponent() {
         return null;
       }
       console.log('Fetching row data...');
-      const data = await createRowData(geoData.features);
+      const filteredFeatures = filterByProperty(geoData, groupBy, inputValue);
+      const data = extractChartData([filteredFeatures]);
+      const tableData = await createRowData(data);
       console.log('Setting row data...');
-      setRowData(data);
+      setRowData(tableData);
     }
     fetchData();
-  }, [geoData]);
+  }, [geoData, inputValue, groupBy]);
 
   // Risk factor object rendering
   const RiskFactorsCell: React.FC<RiskFactorsCellProps> = ({ value }) => {
