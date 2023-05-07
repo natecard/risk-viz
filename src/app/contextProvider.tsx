@@ -40,14 +40,9 @@ export default function DataProvider({
     async function fetchData() {
       const response = await fetch(
         process.env.NEXT_PUBLIC_WEB_URL! + '/api/data',
-        {
-          cache: 'no-cache',
-        },
       );
       const data = await response.json();
-      let jsonData = convertJSON(data);
-      let geoJSONData = convertToGeoJSON(jsonData);
-      setGeoData(geoJSONData);
+      setGeoData(data);
     }
     fetchData();
   }, []);

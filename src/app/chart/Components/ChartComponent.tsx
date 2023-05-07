@@ -117,17 +117,18 @@ type GroupablePropertyKey =
       year: 'Year',
     };
 
-    const filteredFeatures: Feature[] = geoData.features.filter(
-      (feature: Feature) => {
-        if (feature.properties && feature.properties[propertyMap[property]]) {
-          return (
-            feature.properties[propertyMap[property]].toString() ===
-            filterValue.toString()
-          );
-        }
-        return false;
-      },
-    );
+    // Check if geoData.features is defined before filtering
+    const filteredFeatures: Feature[] = geoData.features
+      ? geoData.features.filter((feature: Feature) => {
+          if (feature.properties && feature.properties[propertyMap[property]]) {
+            return (
+              feature.properties[propertyMap[property]].toString() ===
+              filterValue.toString()
+            );
+          }
+          return false;
+        })
+      : [];
 
     return {
       type: 'FeatureCollection',
@@ -151,9 +152,10 @@ type GroupablePropertyKey =
       setGroupBy,
     } = useContext(DataContext);
 
-    const onLineClick = (groupData: any): void => {
+    const onDotClick = (groupData: any): void => {
       setGeoData(groupData);
     };
+
     useEffect(() => {
       if (geoData) {
         const filteredFeatures = filterByProperty(geoData, groupBy, inputValue);
@@ -172,21 +174,9 @@ type GroupablePropertyKey =
 
         const colorScale = scaleOrdinal(schemeCategory10);
 
-        const xAxis = axisBottom(xScale).ticks(5).tickFormat(format('d')); // Add this line
+        const xAxis = axisBottom(xScale).ticks(5).tickFormat(format('d'));
 
         const yAxis = axisLeft(yScale).ticks(10);
-
-        const d3line = line<{
-          year: number;
-          riskRating: number;
-          assetName: string;
-          latitude: number;
-          longitude: number;
-          riskFactors: object;
-          businessCategory: string;
-        }>()
-          .x((d) => xScale(d.year))
-          .y((d) => yScale(d.riskRating));
 
         if (chartRef.current) {
           select(chartRef.current).selectAll('*').remove();
@@ -208,13 +198,15 @@ type GroupablePropertyKey =
 
           data.forEach((groupData, i) => {
             svg
-              .append('path')
-              .datum(groupData)
-              .attr('fill', 'none')
-              .attr('stroke', colorScale(i.toString()))
-              .attr('stroke-width', 1.5)
-              .attr('d', d3line)
-              .on('click', () => onLineClick(groupData));
+              .selectAll('dot')
+              .data(groupData)
+              .enter()
+              .append('circle')
+              .attr('cx', (d) => xScale(d.year))
+              .attr('cy', (d) => yScale(d.riskRating))
+              .attr('r', 3)
+              .attr('fill', colorScale(i.toString()))
+              .on('click', () => onDotClick(groupData));
           });
         }
 

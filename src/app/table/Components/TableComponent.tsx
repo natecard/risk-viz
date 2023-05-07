@@ -54,7 +54,7 @@ export default function TableComponent() {
   const gridRef = useRef<AgGridReact<any>>(null);
   //reinitialize array for state
   const [rowData, setRowData] = useState<any>([]);
-
+  console.log(geoData);
   useEffect(() => {
     async function fetchData() {
       if (!geoData || !geoData.features) {

@@ -1,3 +1,4 @@
+import { convertJSON, convertToGeoJSON } from '@/app/jsonToGeo';
 import { NextResponse } from 'next/server';
 
 const sheetsId = process.env.GOOGLE_SHEETS_ID!;
@@ -7,5 +8,7 @@ export async function GET() {
     `https://sheets.googleapis.com/v4/spreadsheets/${sheetsId}/values/Sheet1?alt=json&key=${apiKey}`,
   );
   const data = await response.json();
-  return NextResponse.json(data);
+  let jsonData = convertJSON(data);
+  let geoJSONData = convertToGeoJSON(jsonData);
+  return NextResponse.json(geoJSONData);
 }

@@ -5,24 +5,43 @@ import { DataContext } from '@/app/contextProvider';
 import Loading from '../loading';
 import ControlPanel from './ControlPanel';
 import { FeatureCollection } from 'geojson';
+import {
+  extractChartData,
+  filterByProperty,
+} from '@/app/chart/Components/ChartComponent';
+
 const apiKey: string = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN!;
 
 export default function DataMap() {
-  const { geoData, setGeoData, year, setYear } = useContext(DataContext);
+  const { geoData, setGeoData, year, setYear, groupBy, selectedProperty } =
+    useContext(DataContext);
+
   const filteredData: FeatureCollection = useMemo(() => {
-    console.log(geoData);
     if (!geoData || !geoData.features) {
       return { type: 'FeatureCollection', features: [] };
     }
-    const filteredFeatures = geoData.features.filter(
-      (feature: any) => feature.properties.Year === year,
-    );
+
+    const filteredFeatures = filterByProperty(geoData, 'year', year);
+
     return {
       ...geoData,
       type: 'FeatureCollection',
-      features: filteredFeatures,
+      features: filteredFeatures.features, // get the features from the filteredFeatures object
     };
   }, [geoData, year]);
+
+  const colorStops = useMemo(() => {
+    if (geoData) {
+      const uniqueValues = new Set(
+        geoData.features.map(
+          (feature: any) => feature.properties[selectedProperty],
+        ),
+      );
+      const sortedValues = Array.from(uniqueValues).sort((a, b) => a - b);
+      const step = 1 / (sortedValues.length - 1);
+      return sortedValues.map((value, index) => [index * step, value]);
+    }
+  }, [geoData, selectedProperty]);
 
   const riskRatingLayer: LayerProps = {
     id: 'Point',
@@ -36,18 +55,8 @@ export default function DataMap() {
         ],
       },
       'circle-color': {
-        property: 'Risk Rating',
-        stops: [
-          [0, '#3288bd'],
-          [0.1, '#66c2a5'],
-          [0.2, '#abdda4'],
-          [0.3, '#e6f598'],
-          [0.4, '#ffffbf'],
-          [0.5, '#fee08b'],
-          [0.6, '#fdae61'],
-          [0.7, '#f46d43'],
-          [0.8, '#d53e4f'],
-        ],
+        property: selectedProperty,
+        stops: colorStops,
       },
     },
   };
