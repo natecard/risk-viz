@@ -58,8 +58,7 @@ type GroupablePropertyKey =
         riskFactors: object;
         businessCategory: string;
       }[] = [];
-
-      geoData.features.forEach((feature) => {
+      geoData?.features?.forEach((feature) => {
         if (feature.properties && feature.geometry.type === 'Point') {
           const year = feature.properties.Year;
           const riskRating = feature.properties['Risk Rating'];
@@ -150,6 +149,8 @@ type GroupablePropertyKey =
       setSelectedProperty,
       groupBy,
       setGroupBy,
+      clickedFeature,
+      setClickedFeature,
     } = useContext(DataContext);
 
     const onDotClick = (groupData: any): void => {
