@@ -31,8 +31,8 @@ export const DataContext = createContext({
   setGroupBy: (groupBy: GroupablePropertyKey) => {},
   showPopup: false,
   setShowPopup: (show: boolean) => {},
-  popupInfo: null,
-  setPopupInfo: (info: any) => {},
+  popupInfo: null as Feature<Geometry, GeoJsonProperties> | null,
+  setPopupInfo: (info: Feature<Geometry, GeoJsonProperties> | null) => {},
   clickedFeature: null,
   setClickedFeature: (feature: any) => {},
 });
@@ -46,8 +46,11 @@ export default function DataProvider({
   const [inputValue, setInputValue] = useState<string | number>('');
   const [selectedProperty, setSelectedProperty] = useState('assetName');
   const [groupBy, setGroupBy] = useState<GroupablePropertyKey>('assetName');
-  const [showPopup, setShowPopup] = useState(false);
-  const [popupInfo, setPopupInfo] = useState(null);
+  const [showPopup, setShowPopup] = useState<boolean>(false);
+  const [popupInfo, setPopupInfo] = useState<Feature<
+    Geometry,
+    GeoJsonProperties
+  > | null>(null);
   const [clickedFeature, setClickedFeature] = useState(null);
 
   useEffect(() => {

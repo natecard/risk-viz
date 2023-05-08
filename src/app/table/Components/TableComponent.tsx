@@ -50,7 +50,14 @@ async function createRowData(
 }
 
 export default function TableComponent() {
-  const { geoData, setGeoData, inputValue, groupBy } = useContext(DataContext);
+  const {
+    geoData,
+    setGeoData,
+    inputValue,
+    groupBy,
+    clickedFeature,
+    setClickedFeature,
+  } = useContext(DataContext);
   const gridRef = useRef<AgGridReact<any>>(null);
   //reinitialize array for state
   const [rowData, setRowData] = useState<any>([]);

@@ -1,13 +1,19 @@
 'use client';
 import { Map, Layer, Source, LayerProps } from 'react-map-gl';
-import { Suspense, useMemo, useContext } from 'react';
+import { Suspense, useMemo, useContext, useState } from 'react';
 import { DataContext } from '@/app/contextProvider';
 import Loading from '../loading';
 import ControlPanel from './ControlPanel';
 import { Popup } from 'react-map-gl';
 import Chart from '@/app/chart/Components/ChartComponent';
 import Table from '@/app/table/Components/TableComponent';
-import { Feature, FeatureCollection } from 'geojson';
+import {
+  Feature,
+  FeatureCollection,
+  GeoJsonProperties,
+  Geometry,
+  Point,
+} from 'geojson';
 import {
   extractChartData,
   filterByProperty,
@@ -47,11 +53,16 @@ export default function DataMap() {
     selectedProperty,
     showPopup,
     setShowPopup,
-    popupInfo,
+    popupInfo: maybePopupInfo,
     setPopupInfo,
     clickedFeature,
     setClickedFeature,
   } = useContext(DataContext);
+  const popupInfo = maybePopupInfo as Feature<
+    Geometry,
+    GeoJsonProperties
+  > | null;
+  const [mapInstance, setMapInstance] = useState<any>(null);
 
   const filteredData: FeatureCollection = useMemo(() => {
     if (!geoData || !geoData.features) {
@@ -72,7 +83,7 @@ export default function DataMap() {
   }, [geoData, year]);
 
   const colorStops = useMemo(() => {
-    if (geoData) {
+    if (geoData && geoData.features) {
       const uniqueValues = new Set(
         geoData.features.map(
           (feature: any) => feature.properties[selectedProperty],
@@ -96,6 +107,9 @@ export default function DataMap() {
       b * 255,
     )})`;
   }
+  function isPoint(geometry: Geometry): geometry is Point {
+    return geometry.type === 'Point';
+  }
 
   const riskRatingLayer: LayerProps = {
     id: 'Point',
@@ -117,19 +131,23 @@ export default function DataMap() {
       },
     },
   };
-  function onClick(event: any) {
-    const features = event.features;
-    const clickedPoint =
-      features &&
-      features.find((f: { layer: { id: string } }) => f.layer.id === 'Point');
-    if (clickedPoint) {
-      setPopupInfo(clickedPoint);
-      setShowPopup(true);
-      setClickedFeature(clickedPoint);
-    } else {
-      setShowPopup(false);
-      setPopupInfo(null);
-      setClickedFeature(null);
+  function onMapClick(event: any) {
+    if (mapInstance) {
+      const features = mapInstance.queryRenderedFeatures(event.point);
+
+      const clickedFeature = features.find(
+        (feature: any) => feature.layer.id === 'Point',
+      );
+
+      if (clickedFeature) {
+        setClickedFeature(clickedFeature);
+        setPopupInfo(clickedFeature);
+        setShowPopup(true);
+        console.log(clickedFeature);
+      } else {
+        setShowPopup(false);
+        console.log('error');
+      }
     }
   }
 
@@ -137,7 +155,8 @@ export default function DataMap() {
     <div className='flex justify-center'>
       <Suspense fallback={<Loading />}>
         <Map
-          onClick={onClick}
+          onLoad={(event: any) => setMapInstance(event.target)}
+          onClick={onMapClick}
           initialViewState={{
             longitude: -79.36,
             latitude: 43.65,
@@ -148,31 +167,30 @@ export default function DataMap() {
           mapboxAccessToken={apiKey}
           attributionControl={false}
         >
+          {showPopup && popupInfo && (
+            <Popup
+              anchor='top'
+              longitude={
+                isPoint(popupInfo.geometry)
+                  ? popupInfo.geometry.coordinates[0]
+                  : 0
+              }
+              latitude={
+                isPoint(popupInfo.geometry)
+                  ? popupInfo.geometry.coordinates[1]
+                  : 0
+              }
+              closeOnClick={false}
+              onClose={() => setShowPopup(false)}
+            >
+              <div>
+                <h4>Asset Name: {popupInfo.properties?.['Asset Name']}</h4>
+                {/* ... other properties ... */}
+              </div>
+            </Popup>
+          )}
           <Source id='data' type='geojson' data={filteredData}>
             <Layer {...riskRatingLayer} />
-            {showPopup && popupInfo && (
-              <Popup
-                tipSize={5}
-                anchor='top'
-                longitude={popupInfo.geometry.coordinates[0]}
-                latitude={popupInfo.geometry.coordinates[1]}
-                closeOnClick={false}
-                onClose={() => setShowPopup(false)}
-              >
-                <div>
-                  <h4>Asset Name: {popupInfo.properties['Asset Name']}</h4>
-                  <p>
-                    Business Category:{' '}
-                    {popupInfo.properties['Business Category']}
-                  </p>
-                  <p>Risk Rating: {popupInfo.properties['Risk Rating']}</p>
-                  <p>
-                    Risk Factors:{' '}
-                    {JSON.stringify(popupInfo.properties['Risk Factors'])}
-                  </p>
-                </div>
-              </Popup>
-            )}
           </Source>
           <ControlPanel
             onChange={(value: number) => {
