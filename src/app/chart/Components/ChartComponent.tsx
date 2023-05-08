@@ -25,7 +25,10 @@ type GroupablePropertyKey =
   | 'riskRating'
   | 'year';
 
-  export function extractChartData(groupedGeoData: FeatureCollection[]): {
+  export function extractChartData(
+    groupedGeoData: FeatureCollection[],
+    clickedFeature?: Feature | null,
+  ): {
     year: number;
     riskRating: number;
     assetName: string;
@@ -34,6 +37,33 @@ type GroupablePropertyKey =
     riskFactors: object;
     businessCategory: string;
   }[][] {
+    // If a clickedFeature is provided, use it as the only data point
+    if (clickedFeature) {
+      const feature = clickedFeature;
+      if (feature.properties && feature.geometry.type === 'Point') {
+        const year = feature.properties.Year;
+        const riskRating = feature.properties['Risk Rating'];
+        const latitude = feature.geometry.coordinates[1];
+        const longitude = feature.geometry.coordinates[0];
+        const assetName = feature.properties['Asset Name'];
+        const riskFactors = feature.properties['Risk Factors'];
+        const businessCategory = feature.properties['Business Category'];
+
+        return [
+          [
+            {
+              year,
+              riskRating,
+              latitude,
+              longitude,
+              assetName,
+              riskFactors,
+              businessCategory,
+            },
+          ],
+        ];
+      }
+    }
     if (!groupedGeoData) {
       return [];
     }
@@ -160,7 +190,7 @@ type GroupablePropertyKey =
     useEffect(() => {
       if (geoData) {
         const filteredFeatures = filterByProperty(geoData, groupBy, inputValue);
-        const data = extractChartData([filteredFeatures]);
+        const data = extractChartData([filteredFeatures], clickedFeature);
         const width = 700;
         const height = 600;
         const margin = { top: 20, right: 20, bottom: 50, left: 50 };
@@ -215,7 +245,7 @@ type GroupablePropertyKey =
           select(chartRef.current).selectAll('*').remove();
         };
       }
-    }, [geoData, groupBy, inputValue]);
+    }, [geoData, groupBy, inputValue, clickedFeature]);
 
     return (
       <>
