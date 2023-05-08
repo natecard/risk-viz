@@ -1,5 +1,10 @@
 'use client';
-import { FeatureCollection, GeoJsonProperties, Geometry } from 'geojson';
+import {
+  Feature,
+  FeatureCollection,
+  GeoJsonProperties,
+  Geometry,
+} from 'geojson';
 import { ReactNode, createContext, useEffect, useState } from 'react';
 import { convertJSON, convertToGeoJSON } from './jsonToGeo';
 type GroupablePropertyKey =
@@ -24,6 +29,12 @@ export const DataContext = createContext({
   setSelectedProperty: (selectedProperty: string) => {},
   groupBy: '' as GroupablePropertyKey,
   setGroupBy: (groupBy: GroupablePropertyKey) => {},
+  showPopup: false,
+  setShowPopup: (show: boolean) => {},
+  popupInfo: null,
+  setPopupInfo: (info: any) => {},
+  clickedFeature: null,
+  setClickedFeature: (feature: any) => {},
 });
 
 export default function DataProvider({
@@ -35,6 +46,9 @@ export default function DataProvider({
   const [inputValue, setInputValue] = useState<string | number>('');
   const [selectedProperty, setSelectedProperty] = useState('assetName');
   const [groupBy, setGroupBy] = useState<GroupablePropertyKey>('assetName');
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupInfo, setPopupInfo] = useState(null);
+  const [clickedFeature, setClickedFeature] = useState(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -60,6 +74,12 @@ export default function DataProvider({
         setSelectedProperty,
         groupBy,
         setGroupBy,
+        showPopup,
+        setShowPopup,
+        popupInfo,
+        setPopupInfo,
+        clickedFeature,
+        setClickedFeature,
       }}
     >
       {children}
