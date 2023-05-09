@@ -1,12 +1,16 @@
 'use client';
-import { Map, Layer, Source, LayerProps } from 'react-map-gl';
+import {
+  Map,
+  Layer,
+  Source,
+  LayerProps,
+  MapLayerMouseEvent,
+} from 'react-map-gl';
 import { Suspense, useMemo, useContext, useState } from 'react';
 import { DataContext } from '@/app/contextProvider';
 import Loading from '../loading';
 import ControlPanel from './ControlPanel';
 import { Popup } from 'react-map-gl';
-import Chart from '@/app/chart/Components/ChartComponent';
-import Table from '@/app/table/Components/TableComponent';
 import {
   Feature,
   FeatureCollection,
@@ -131,7 +135,8 @@ export default function DataMap() {
       },
     },
   };
-  function onMapClick(event: any) {
+
+  function onMapClick(event: MapLayerMouseEvent) {
     if (mapInstance) {
       const features = mapInstance.queryRenderedFeatures(event.point);
 
@@ -140,6 +145,13 @@ export default function DataMap() {
       );
 
       if (clickedFeature) {
+        const coordinates = clickedFeature.geometry.coordinates.slice();
+        const description = clickedFeature.properties.description;
+
+        while (Math.abs(event.lngLat.lng - coordinates[0]) > 180) {
+          coordinates[0] += event.lngLat.lng > coordinates[0] ? 360 : -360;
+        }
+
         setClickedFeature(clickedFeature);
         setPopupInfo(clickedFeature);
         setShowPopup(true);
@@ -150,13 +162,24 @@ export default function DataMap() {
       }
     }
   }
-
+  function onMapMouseEnter() {
+    if (mapInstance) {
+      mapInstance.getCanvas().style.cursor = 'pointer';
+    }
+  }
+  function onMapMouseLeave() {
+    if (mapInstance) {
+      mapInstance.getCanvas().style.cursor = '';
+    }
+  }
   return (
     <div className='flex justify-center'>
       <Suspense fallback={<Loading />}>
         <Map
           onLoad={(event: any) => setMapInstance(event.target)}
           onClick={onMapClick}
+          onMouseEnter={onMapMouseEnter}
+          onMouseLeave={onMapMouseLeave}
           initialViewState={{
             longitude: -79.36,
             latitude: 43.65,
@@ -182,11 +205,14 @@ export default function DataMap() {
               }
               closeOnClick={false}
               onClose={() => setShowPopup(false)}
+              offset={[0, -20]}
             >
-              <div>
-                <h4>Asset Name: {popupInfo.properties?.['Asset Name']}</h4>
-                {/* ... other properties ... */}
-              </div>
+              <h2>Asset Name: {popupInfo.properties?.['Asset Name']}</h2>
+              <h3>
+                Business Category: {popupInfo.properties?.['Business Category']}
+              </h3>
+              <h3>Risk Rating: {popupInfo.properties?.['Risk Rating']}</h3>
+              {/* <h3>Risk Rating: {popupInfo.properties?.['Risk Factors']}</h3> */}
             </Popup>
           )}
           <Source id='data' type='geojson' data={filteredData}>
