@@ -144,22 +144,22 @@ export default function DataMap() {
         (feature: any) => feature.layer.id === 'Point',
       );
 
-      if (clickedFeature) {
-        const coordinates = clickedFeature.geometry.coordinates.slice();
-        const description = clickedFeature.properties.description;
+if (clickedFeature && clickedFeature.geometry.type === 'Point') {
+  const coordinates = clickedFeature.geometry.coordinates.slice();
+  const description = clickedFeature.properties.description;
 
-        while (Math.abs(event.lngLat.lng - coordinates[0]) > 180) {
-          coordinates[0] += event.lngLat.lng > coordinates[0] ? 360 : -360;
-        }
+  while (Math.abs(event.lngLat.lng - coordinates[0]) > 180) {
+    coordinates[0] += event.lngLat.lng > coordinates[0] ? 360 : -360;
+  }
 
-        setClickedFeature(clickedFeature);
-        setPopupInfo(clickedFeature);
-        setShowPopup(true);
-        console.log(clickedFeature);
-      } else {
-        setShowPopup(false);
-        console.log('error');
-      }
+  setClickedFeature(clickedFeature);
+  setPopupInfo(clickedFeature);
+  setShowPopup(true);
+  console.log(clickedFeature);
+} else {
+  setShowPopup(false);
+  console.log('error');
+}
     }
   }
   function onMapMouseEnter() {

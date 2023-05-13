@@ -60,34 +60,36 @@ export default function TableComponent() {
   const gridRef = useRef<AgGridReact<any>>(null);
   //reinitialize array for state
   const [rowData, setRowData] = useState<any>([]);
-  useEffect(() => {
-    async function fetchData() {
-      if (!geoData || !geoData.features) {
-        return null;
-      }
-      console.log('Fetching row data...');
-      const filteredFeatures = filterByProperty(geoData, groupBy, inputValue);
+ useEffect(() => {
+   async function fetchData() {
+     let tableData = null;
+     if (!geoData || !geoData.features) {
+       return null;
+     }
+     console.log('Fetching row data...');
+     const filteredFeatures = filterByProperty(geoData, groupBy, inputValue);
 
-      // Check if there is a clickedFeature
-      if (clickedFeature) {
-        const clickedFeatureData = clickedFeature as Feature;
-        const singleData = {
-          year: clickedFeatureData.properties!.Year,
-          riskRating: clickedFeatureData.properties!['Risk Rating'],
-          assetName: clickedFeatureData.properties!['Asset Name'],
-          latitude: (clickedFeatureData.geometry as Point).coordinates[1],
-          longitude: (clickedFeatureData.geometry as Point).coordinates[0],
-          riskFactors: clickedFeatureData.properties!['Risk Factors'],
-          businessCategory: clickedFeatureData.properties!['Business Category'],
-        };
-        setRowData([singleData]);
-      } else {
-        const data = extractChartData([filteredFeatures]);
-        const tableData = await createRowData(data);
-        setRowData(tableData);
-      }
-    }
-  });
+     // Check if there is a clickedFeature
+     if (clickedFeature) {
+       const clickedFeatureData = clickedFeature as Feature;
+       const singleData = {
+         year: clickedFeatureData.properties!.Year,
+         riskRating: clickedFeatureData.properties!['Risk Rating'],
+         assetName: clickedFeatureData.properties!['Asset Name'],
+         latitude: (clickedFeatureData.geometry as Point).coordinates[1],
+         longitude: (clickedFeatureData.geometry as Point).coordinates[0],
+         riskFactors: clickedFeatureData.properties!['Risk Factors'],
+         businessCategory: clickedFeatureData.properties!['Business Category'],
+       };
+       tableData = [singleData];
+     } else {
+       const data = extractChartData([filteredFeatures]);
+       tableData = await createRowData(data);
+     }
+     setRowData(tableData);
+   }
+   fetchData();
+ }, [geoData, groupBy, inputValue, clickedFeature]);
 
   // Risk factor object rendering
   const RiskFactorsCell: React.FC<RiskFactorsCellProps> = ({ value }) => {
