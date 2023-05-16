@@ -14,7 +14,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang='en'>
-      <body>
+      <body className='bg-gray-700'>
         <DataProvider>
           <header className=' flex flex-row bg-gray-400 pb-2 pt-4'>
             <div className='px-8'>

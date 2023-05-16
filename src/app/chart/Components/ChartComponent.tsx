@@ -249,7 +249,7 @@ type GroupablePropertyKey =
 
     return (
       <>
-        <div className='flex w-full justify-center py-2'>
+        <div className='flex py-2'>
           <label>
             Group by:
             <select
@@ -280,7 +280,7 @@ type GroupablePropertyKey =
             Group
           </button>
         </div>
-        <div className='flex w-full justify-center'>
+        <div className='flex'>
           <div ref={chartRef}></div>
         </div>
       </>

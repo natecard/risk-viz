@@ -186,7 +186,7 @@ if (clickedFeature && clickedFeature.geometry.type === 'Point') {
             zoom: 6,
           }}
           mapStyle='mapbox://styles/mapbox/dark-v11'
-          style={{ width: '90vw', height: '70vh' }}
+          style={{ width: '90vw', height: '60vh' }}
           mapboxAccessToken={apiKey}
           attributionControl={false}
         >

@@ -212,7 +212,7 @@ export default function TableComponent() {
   return (
     <div
       className='ag-theme-alpine-dark p-10'
-      style={{ height: '100vh', width: '100vw' }}
+      style={{ height: '60vh', width: '50vw' }}
     >
       <AgGridReact
         pagination={true}
